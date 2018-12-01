@@ -21,8 +21,8 @@ public class PlayerController : MonoBehaviour
     [NotNull] [SerializeField] private GroundCheck _groundCheck;
     [NotNull] private Rigidbody2D _rb;
 
-    private float _movementSpd = 30.0f * SinglePixel;
-    private float _accelSpd = 3.0f;
+    private float _movementSpd = 50.0f * SinglePixel;
+    private float _accelSpd = 1.5f;
     private float _jumpHeightImpulse = 9.0f;
     private float _flutterJumpAmount = 2.4f;
     private float _fastFallImpulse = 2.0f;
@@ -104,7 +104,8 @@ public class PlayerController : MonoBehaviour
         var movementSpdModifier = 1.0f;
         var rampUp = Mathf.Clamp(_speedRampUpTime, 0.1f, 1f);
         
-        _speedRampUpTime += _accelSpd * Time.fixedDeltaTime;
+        if (_flutterJumpTimer <= 0.0f)
+            _speedRampUpTime += _accelSpd * Time.fixedDeltaTime;
         
         _xSpd = _inputDirX * rampUp *_movementSpd;
 
@@ -159,8 +160,14 @@ public class PlayerController : MonoBehaviour
         // Do flutter jump stuff if flutter jumping
         if (_flutterJumpTimer > 0.0f)
         {
-            var YVelocityChange = _flutterJumpAmount *
-                                  (1.15f * (Mathf.Sin(2 * (_flutterJumpTimer) * Mathf.PI + 0.25f) + 0.2f) + 0.2f);
+            var mod = 1.0f;
+            if (_flutterJumpsBeforeLandingCount > 1)
+            {
+                mod = 0.5f;
+            }
+
+            var YVelocityChange = _flutterJumpAmount * 
+                                  (1.15f * (Mathf.Sin(2 * (_flutterJumpTimer) * Mathf.PI + 0.25f) + 0.2f * mod) + 0.2f * mod);
             _rb.velocity = new Vector2(_rb.velocity.x, (0.7f * _flutterJumpIncidentYVelocity) + YVelocityChange + _gravitySpd);
             _flutterJumpCooldownTimer = FlutterJumpCooldownTimerTime;
 
@@ -199,5 +206,15 @@ public class PlayerController : MonoBehaviour
     public float GetInputDirX()
     {
         return _inputDirX;
+    }
+
+    public Vector2 GetVelocity()
+    {
+        return _rb.velocity;
+    }
+
+    public bool IsGrounded()
+    {
+        return _groundCheck.IsColliding();
     }
 }
