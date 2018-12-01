@@ -17,11 +17,11 @@ public class MainCameraController : MonoBehaviour
 
     private float _scaryOffsetXLimit = 2.4f;
 
-    private void LateUpdate()
+    private void FixedUpdate()
     {
         // Handle scary offset
-        if (Mathf.Abs(_player.GetVelocity().x) >= 4.5f)
-            _scaryOffset.x += _player.GetVelocity().x * Time.deltaTime;
+        if (Mathf.Abs(_player.GetVelocity().x) > 4.5f)
+            _scaryOffset.x += _player.GetInputDirX() * 4f * Time.fixedDeltaTime;
 
         var newPos = transform.position;
 
@@ -30,7 +30,7 @@ public class MainCameraController : MonoBehaviour
         var insideSafeZone = relativePos.x > -_xLimit && relativePos.x < _xLimit;
 
 
-        if (!insideSafeZone || Mathf.Abs(_player.GetVelocity().x) >= 4.5f)
+        if (!insideSafeZone || Mathf.Abs(_player.GetVelocity().x) > 4.5f)
         {
             newPos.x = _player.transform.position.x - (Mathf.Sign(relativePos.x) * _xLimit);
 
