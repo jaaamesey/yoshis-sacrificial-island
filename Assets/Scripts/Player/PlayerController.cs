@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Experimental.PlayerLoop;
@@ -21,12 +22,14 @@ public class PlayerController : MonoBehaviour
     [NotNull] private Rigidbody2D _rb;
 
     private float _movementSpd = 30.0f * SinglePixel;
+    private float _accelSpd = 3.0f;
     private float _jumpHeightImpulse = 9.0f;
     private float _flutterJumpAmount = 2.4f;
-    private float _fastFallImpulse = 3.0f;
+    private float _fastFallImpulse = 2.0f;
     private float _gravitySpd = 5.0f * SinglePixel;
 
     private int _inputDirX = 0;
+    private float _xSpd = 0.0f;
 
     private int _flutterJumpsBeforeLandingCount = 0;
     private float _flutterJumpIncidentYVelocity = 0;
@@ -43,6 +46,7 @@ public class PlayerController : MonoBehaviour
 
     // Stopwatches
     private float _jumpHoldTime = -1.0f;
+    private float _speedRampUpTime = 0f;
 
     // Start is called before the first frame update
     private void Start()
@@ -87,8 +91,22 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        var is_braking = false;
+        
+        // Determine if braking
+        // If input direction is different from the last x speed direction, the player is braking.
+        if ((int) Mathf.Sign(_xSpd) != (int) Mathf.Sign(_inputDirX) || _inputDirX == 0)
+        {
+            is_braking = true;
+            _speedRampUpTime = 0f;
+        }
+        
         var movementSpdModifier = 1.0f;
-        var xSpd = _inputDirX * _movementSpd;
+        var rampUp = Mathf.Clamp(_speedRampUpTime, 0.1f, 1f);
+        
+        _speedRampUpTime += _accelSpd * Time.fixedDeltaTime;
+        
+        _xSpd = _inputDirX * rampUp *_movementSpd;
 
         // Handle jumping
         var canJump = CanJump();
@@ -123,7 +141,7 @@ public class PlayerController : MonoBehaviour
         // Handle flutter jump
 
         // If Yoshi is falling and jump is held down...
-        if ((_jumpButtonLeewayTimer > 0.0f || (_isJumpHeldDown && _flutterJumpsBeforeLandingCount < 1)) && _rb.velocity.y < -0.05f)
+        if ((_jumpButtonLeewayTimer > 0.0f || (_isJumpHeldDown && _flutterJumpsBeforeLandingCount < 1) && _rb.velocity.y < -0.5f) && _rb.velocity.y < -0.05f)
         {
             _flutterJumpIncidentYVelocity = _rb.velocity.y;
             _flutterJumpsBeforeLandingCount++;
@@ -142,7 +160,7 @@ public class PlayerController : MonoBehaviour
         if (_flutterJumpTimer > 0.0f)
         {
             var YVelocityChange = _flutterJumpAmount *
-                                  (1.15f * Mathf.Sin(2 * (_flutterJumpTimer) * Mathf.PI + 0.25f) + 0.15f);
+                                  (1.15f * (Mathf.Sin(2 * (_flutterJumpTimer) * Mathf.PI + 0.25f) + 0.2f) + 0.2f);
             _rb.velocity = new Vector2(_rb.velocity.x, (0.7f * _flutterJumpIncidentYVelocity) + YVelocityChange + _gravitySpd);
             _flutterJumpCooldownTimer = FlutterJumpCooldownTimerTime;
 
@@ -152,11 +170,18 @@ public class PlayerController : MonoBehaviour
         // Handle movement 
         var newVelocity = _rb.velocity;
 
-        newVelocity.x = xSpd * movementSpdModifier;
+        newVelocity.x = _xSpd * movementSpdModifier;
         newVelocity.y -= _gravitySpd;
 
         _rb.velocity = newVelocity;
 
+        // Clamp rotation
+        
+        _rb.rotation = Mathf.Clamp(_rb.rotation, -10f, 10f);
+        
+        if (_jumpHoldTime > 0.0f)
+            _rb.rotation = Mathf.Lerp(_rb.rotation, 0f, 0.4f);
+        
         HandleTimers();
     }
 
@@ -169,5 +194,10 @@ public class PlayerController : MonoBehaviour
             return false;
 
         return true;
+    }
+
+    public float GetInputDirX()
+    {
+        return _inputDirX;
     }
 }

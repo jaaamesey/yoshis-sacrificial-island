@@ -10,6 +10,14 @@ public class GroundCheck : MonoBehaviour
     
     private List<Collider2D> _overlappingColliders = new List<Collider2D>();
 
+    private void FixedUpdate()
+    {
+        // Force consistent rotation
+        //var transformRotation = transform.rotation;
+        //transformRotation.z = 0;
+        //transform.rotation = transformRotation;
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (_ignoredColliders.Contains(other))
@@ -17,6 +25,7 @@ public class GroundCheck : MonoBehaviour
         
         if (!_overlappingColliders.Contains(other))
             _overlappingColliders.Add(other);
+        
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -34,4 +43,11 @@ public class GroundCheck : MonoBehaviour
     {
         return _overlappingColliders.Count > 0;
     }
+
+    /*public Vector2 GetFloorNormal()
+    {
+        var hit = Physics2D.Raycast(transform.position, Vector2.down, 1000f);
+        print(hit.point);
+        return hit.normal;
+    }*/
 }
