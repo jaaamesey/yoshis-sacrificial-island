@@ -22,6 +22,8 @@ public class PlayerController : MonoBehaviour
     [NotNull] [SerializeField] private GroundCheck _groundCheck = null;
     [NotNull] private Rigidbody2D _rb;
 
+    [NotNull] private MainCameraController _cameraController = null;
+
     private float _movementSpd = 50.0f * SinglePixel;
     private float _accelSpd = 1.5f;
     private float _jumpHeightImpulse = 9.0f;
@@ -53,6 +55,13 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
+        Debug.Assert(Camera.main != null, "Camera.main != null");
+        _cameraController = Camera.main.GetComponent<MainCameraController>();
+
+        // Special system stuff
+        // Turn off interpolation if on WebGL
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+            _rb.interpolation = RigidbodyInterpolation2D.None;
     }
 
     private void ProcessInput()
@@ -93,7 +102,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         var is_braking = false;
-        
+
         // Determine if braking
         // If input direction is different from the last x speed direction, the player is braking.
         if ((int) Mathf.Sign(_xSpd) != (int) Mathf.Sign(_inputDirX) || _inputDirX == 0)
@@ -101,16 +110,16 @@ public class PlayerController : MonoBehaviour
             is_braking = true;
             _speedRampUpTime = 0f;
         }
-        
+
         var movementSpdModifier = 1.0f;
         var rampUp = Mathf.Clamp(_speedRampUpTime, 0.1f, 1f);
-        
+
         if (_flutterJumpTimer <= 0.0f)
             _speedRampUpTime += _accelSpd * Time.fixedDeltaTime;
         else
             _speedRampUpTime += 0.5f * _accelSpd * Time.fixedDeltaTime;
-        
-        _xSpd = _inputDirX * rampUp *_movementSpd;
+
+        _xSpd = _inputDirX * rampUp * _movementSpd;
 
         // Handle jumping
         var canJump = CanJump();
@@ -145,7 +154,9 @@ public class PlayerController : MonoBehaviour
         // Handle flutter jump
 
         // If Yoshi is falling and jump is held down...
-        if ((_jumpButtonLeewayTimer > 0.0f || (_isJumpHeldDown && _flutterJumpsBeforeLandingCount < 1) && _rb.velocity.y < -0.5f) && _rb.velocity.y < -0.05f)
+        if ((_jumpButtonLeewayTimer > 0.0f ||
+             (_isJumpHeldDown && _flutterJumpsBeforeLandingCount < 1) && _rb.velocity.y < -0.5f) &&
+            _rb.velocity.y < -0.05f)
         {
             _flutterJumpIncidentYVelocity = _rb.velocity.y;
             _flutterJumpsBeforeLandingCount++;
@@ -169,9 +180,11 @@ public class PlayerController : MonoBehaviour
                 mod = 0.5f;
             }
 
-            var YVelocityChange = _flutterJumpAmount * 
-                                  (1.15f * (Mathf.Sin(2 * (_flutterJumpTimer) * Mathf.PI + 0.25f) + 0.2f * mod) + 0.2f * mod);
-            _rb.velocity = new Vector2(_rb.velocity.x, (0.7f * _flutterJumpIncidentYVelocity) + YVelocityChange + _gravitySpd);
+            var YVelocityChange = _flutterJumpAmount *
+                                  (1.15f * (Mathf.Sin(2 * (_flutterJumpTimer) * Mathf.PI + 0.25f) + 0.2f * mod) +
+                                   0.2f * mod);
+            _rb.velocity = new Vector2(_rb.velocity.x,
+                (0.7f * _flutterJumpIncidentYVelocity) + YVelocityChange + _gravitySpd);
             _flutterJumpCooldownTimer = FlutterJumpCooldownTimerTime;
 
             movementSpdModifier *= 0.55f;
@@ -184,7 +197,7 @@ public class PlayerController : MonoBehaviour
 
         if (_inputDirX == 0 && Mathf.Abs(_rb.velocity.x) > 0.15f)
             newVelocity.x = _rb.velocity.x * 0.9f;
-        
+
         newVelocity.y -= _gravitySpd;
 
         _rb.velocity = newVelocity;
@@ -192,27 +205,26 @@ public class PlayerController : MonoBehaviour
         // Normalise rotation in the air
         if (_jumpHoldTime > 0.0f)
             _rb.rotation = Mathf.Lerp(_rb.rotation, 0f, 0.4f);
-        
-        
+
+
         // Prevent falling into the ground too much when not moving
-        if (Math.Abs(newVelocity.x) < 0.5f && _inputDirX == 0 && _jumpButtonLeewayTimer <= 0.0f && _flutterJumpTimer <= 0.0f && IsGrounded())
+        if (Math.Abs(newVelocity.x) < 0.5f && _inputDirX == 0 && _jumpButtonLeewayTimer <= 0.0f &&
+            _flutterJumpTimer <= 0.0f && IsGrounded())
         {
-            _rb.velocity = Vector2.zero;
+            _rb.velocity = new Vector2(0f, _rb.velocity.y);
         }
-        
+
         // Limit falling velocity
         if (_rb.velocity.y < -10f)
             _rb.velocity = new Vector2(_rb.velocity.x, -10f);
-        
-        
+
+
         // Clamp rotation
         _rb.angularVelocity = Mathf.Clamp(_rb.angularVelocity, -100f, 100f);
         _rb.rotation = Mathf.Clamp(_rb.rotation, -20f, 20f);
-        
-        
-        
+
+
         HandleTimers();
-            
     }
 
     private bool CanJump()
