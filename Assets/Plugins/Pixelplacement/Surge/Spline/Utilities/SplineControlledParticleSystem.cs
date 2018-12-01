@@ -22,7 +22,7 @@ public class SplineControlledParticleSystem : MonoBehaviour
 	#endregion
 
 	#region Private Variables
-	[SerializeField] ParticleSystem _particleSystem;
+	[SerializeField] ParticleSystem _particleSystem = null;
 	Pixelplacement.Spline _spline;
 	ParticleSystem.Particle[] _particles;
 	const float _prviousDiff = .01f;

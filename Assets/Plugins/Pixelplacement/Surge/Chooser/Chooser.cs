@@ -65,8 +65,8 @@ namespace Pixelplacement
 		#endregion
 
 		#region Private Variables
-		[SerializeField] Method _method;
-		[SerializeField] bool _debugView;
+		[SerializeField] Method _method = Method.Raycast;
+		[SerializeField] bool _debugView = false;
 		Transform _previousCursor;
 		List<Transform> _current = new List<Transform>();
 		List<Transform> _previous = new List<Transform>();

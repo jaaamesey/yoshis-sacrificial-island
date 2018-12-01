@@ -34,7 +34,7 @@ namespace Pixelplacement
 		#endregion
 
 		#region Private Variables
-		[SerializeField] bool _dontDestroyOnLoad;
+		[SerializeField] bool _dontDestroyOnLoad = false;
 		static T _instance;
 		#endregion
 

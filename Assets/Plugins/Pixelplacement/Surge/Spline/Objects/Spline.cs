@@ -44,7 +44,7 @@ namespace Pixelplacement
 		int _operatingCurve = 0;
 		float _currentCurve = 0;
 		[SerializeField, Tooltip("Optimize by removing all renderers in built projects.")] bool _removeRenderers = true;
-		[SerializeField, Tooltip("Visualizes how fast or slow a curve segment will be. This operation is expensive so turn it off when not needed.")] bool _showVelocityTicks;
+		[SerializeField, Tooltip("Visualizes how fast or slow a curve segment will be. This operation is expensive so turn it off when not needed.")] bool _showVelocityTicks = false;
 		[SerializeField, Tooltip("How many velocity ticks to show per curve segment.")] int _velocityTickCount = 20;
 		[SerializeField, Range(0, 1)] float _velocityTickScale = .5f;
 		#endregion
