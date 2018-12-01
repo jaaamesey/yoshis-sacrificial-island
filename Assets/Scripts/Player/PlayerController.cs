@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Runtime.InteropServices.ComTypes;
@@ -16,9 +17,9 @@ public class PlayerController : MonoBehaviour
     private const float JumpSafetyTimerTime = 0.3f;
     private const float JumpButtonLeewayTimerTime = 0.15f;
     private const float FlutterJumpTimerTime = 1.0f;
-    private const float FlutterJumpCooldownTimerTime = 0.151f;
+    private const float FlutterJumpCooldownTimerTime = 0.191f;
 
-    [NotNull] [SerializeField] private GroundCheck _groundCheck;
+    [NotNull] [SerializeField] private GroundCheck _groundCheck = null;
     [NotNull] private Rigidbody2D _rb;
 
     private float _movementSpd = 50.0f * SinglePixel;
@@ -106,6 +107,8 @@ public class PlayerController : MonoBehaviour
         
         if (_flutterJumpTimer <= 0.0f)
             _speedRampUpTime += _accelSpd * Time.fixedDeltaTime;
+        else
+            _speedRampUpTime += 0.5f * _accelSpd * Time.fixedDeltaTime;
         
         _xSpd = _inputDirX * rampUp *_movementSpd;
 
@@ -178,18 +181,38 @@ public class PlayerController : MonoBehaviour
         var newVelocity = _rb.velocity;
 
         newVelocity.x = _xSpd * movementSpdModifier;
+
+        if (_inputDirX == 0 && Mathf.Abs(_rb.velocity.x) > 0.15f)
+            newVelocity.x = _rb.velocity.x * 0.9f;
+        
         newVelocity.y -= _gravitySpd;
 
         _rb.velocity = newVelocity;
 
-        // Clamp rotation
-        
-        _rb.rotation = Mathf.Clamp(_rb.rotation, -10f, 10f);
-        
+        // Normalise rotation in the air
         if (_jumpHoldTime > 0.0f)
             _rb.rotation = Mathf.Lerp(_rb.rotation, 0f, 0.4f);
         
+        
+        // Prevent falling into the ground too much when not moving
+        if (Math.Abs(newVelocity.x) < 0.5f && _inputDirX == 0 && _jumpButtonLeewayTimer <= 0.0f && _flutterJumpTimer <= 0.0f && IsGrounded())
+        {
+            _rb.velocity = Vector2.zero;
+        }
+        
+        // Limit falling velocity
+        if (_rb.velocity.y < -10f)
+            _rb.velocity = new Vector2(_rb.velocity.x, -10f);
+        
+        
+        // Clamp rotation
+        _rb.angularVelocity = Mathf.Clamp(_rb.angularVelocity, -100f, 100f);
+        _rb.rotation = Mathf.Clamp(_rb.rotation, -20f, 20f);
+        
+        
+        
         HandleTimers();
+            
     }
 
     private bool CanJump()
