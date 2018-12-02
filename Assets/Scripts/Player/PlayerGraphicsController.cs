@@ -25,9 +25,11 @@ public class PlayerGraphicsController : MonoBehaviour
             _sprite.flipX = false;
         else if (_playerController.GetInputDirX() < 0)
             _sprite.flipX = true;
-        
-        _animator.SetFloat("xSpeed", Mathf.Abs(_playerController.GetVelocity().x));
+
+        var xSpeed = Mathf.Abs(_playerController.GetVelocity().x) - Mathf.Abs(_playerController.GetRelativeVelocity().x);
+        _animator.SetFloat("xSpeed", xSpeed);
         _animator.SetFloat("xInput", Mathf.Abs(_playerController.GetInputDirX()));
+        _animator.SetFloat("FlutterTimer", Mathf.Abs(_playerController.GetFlutterJumpTime()));
         _animator.SetBool("OnGround", _playerController.IsGrounded());
         
     }

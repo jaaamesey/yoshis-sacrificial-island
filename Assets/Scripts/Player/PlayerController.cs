@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Net.Mail;
-using System.Runtime.InteropServices.ComTypes;
-using System.Security.Cryptography;
 using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.Experimental.PlayerLoop;
-using UnityEngine.Experimental.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
+    // Public vars
+    public int Health = 6;
+    
+    // Constants
     private const float SinglePixel = 3.125f / 32f;
 
     // Timer lengths
@@ -33,6 +30,8 @@ public class PlayerController : MonoBehaviour
 
     private int _inputDirX = 0;
     private float _xSpd = 0.0f;
+
+    private Vector2 _relativeVelocity = new Vector2();
 
     private int _flutterJumpsBeforeLandingCount = 0;
     private float _flutterJumpIncidentYVelocity = 0;
@@ -62,6 +61,7 @@ public class PlayerController : MonoBehaviour
         // Turn off interpolation if on WebGL
         if (Application.platform == RuntimePlatform.WebGLPlayer)
             _rb.interpolation = RigidbodyInterpolation2D.None;
+        
     }
 
     private void ProcessInput()
@@ -101,6 +101,51 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Store relative velocity of whatever is being stood on
+        _relativeVelocity = new Vector2();
+        Rigidbody2D objectBeingStoodOn = null;
+        
+        // Store force vector that can be used later
+        var pendingForceVector = new Vector2();
+        
+        // Handle stomping on things
+        foreach (var col in _groundCheck.GetOverlappingColliders())
+        {
+            // Generic rigidbody check
+            var otherRb = col.gameObject.GetComponent<Rigidbody2D>();
+            if (otherRb != null)
+            {
+                objectBeingStoodOn = otherRb;
+                _relativeVelocity = otherRb.velocity;
+            }
+                
+            // Shy guy check
+            var shyGuy = col.gameObject.GetComponent<ShyGuy>();
+            if (shyGuy != null)
+            {
+                // Kill ShyGuy
+                if (!shyGuy.IsDead)
+                {
+                    // Force jump (lil' trick)
+
+                    if (_flutterJumpTimer > 0.0f)
+                        _flutterJumpTimer = 0.0f;
+                    _jumpButtonLeewayTimer = 0.1f;
+                    // Shitton of effects
+                    PlaySound("punch");
+                    PlaySound("hit");
+                    PlayParticleEffect("white_hit", shyGuy.transform.position);
+                    _cameraController.StartScreenShake(0.8f, 0.4f);
+                    shyGuy.Kill();
+                }
+                    
+            }
+        }
+        
+        
+        
+        
+        
         var is_braking = false;
 
         // Determine if braking
@@ -132,6 +177,9 @@ public class PlayerController : MonoBehaviour
             _jumpSafetyTimer = JumpSafetyTimerTime;
             // Reset flutter jump count
             _flutterJumpsBeforeLandingCount = 0;
+            
+            // Also play jump sound
+            PlaySound("yoshi_jump");
         }
 
         if (_isJumpHeldDown)
@@ -164,6 +212,8 @@ public class PlayerController : MonoBehaviour
             if (_flutterJumpTimer <= 0.0f && _flutterJumpCooldownTimer <= 0.0f)
             {
                 _flutterJumpTimer = FlutterJumpTimerTime;
+                // Also play flutter jump sound
+                Invoke(nameof(PlayFlutterSound), 0.3f);
             }
         }
 
@@ -196,9 +246,12 @@ public class PlayerController : MonoBehaviour
         newVelocity.x = _xSpd * movementSpdModifier;
 
         if (_inputDirX == 0 && Mathf.Abs(_rb.velocity.x) > 0.15f)
-            newVelocity.x = _rb.velocity.x * 0.9f;
+            newVelocity.x = (_rb.velocity.x - _relativeVelocity.x) * 0.9f;
 
         newVelocity.y -= _gravitySpd;
+
+        // Add relative x velocity of whatever is being stood on
+        newVelocity.x += _relativeVelocity.x;
 
         _rb.velocity = newVelocity;
 
@@ -247,9 +300,50 @@ public class PlayerController : MonoBehaviour
     {
         return _rb.velocity;
     }
+    
+    public Vector2 GetRelativeVelocity()
+    {
+        return _relativeVelocity;
+    }
 
+    public float GetFlutterJumpTime()
+    {
+        return _flutterJumpTimer;
+    }
+    
     public bool IsGrounded()
     {
         return _groundCheck.IsColliding();
+    }
+
+    public void PlaySound(string soundName)
+    {
+        var sounds = transform.Find("Sounds");
+        var sound = sounds.transform.Find(soundName);
+        sound.GetComponent<AudioSource>().enabled = true;
+        sound.GetComponent<AudioSource>().Play();
+    }
+    
+    public void PlayParticleEffect(string effectName, Vector2 pos)
+    {
+        var effects = transform.Find("Effects");
+        var effect = effects.transform.Find(effectName);
+        
+        effect.transform.position = pos;
+        
+        effect.gameObject.SetActive(true);
+        effect.GetComponent<ParticleSystem>().Play();
+    }
+
+    public void PlayFlutterSound()
+    {
+        if (_flutterJumpTimer <= 0.0f)
+            return;
+        PlaySound("yoshi_flutter");
+    }
+
+    public void ResetTimeScale()
+    {
+        Time.timeScale = 1.0f;
     }
 }

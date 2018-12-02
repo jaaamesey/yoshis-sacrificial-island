@@ -16,8 +16,10 @@ public class MainCameraController : MonoBehaviour
 
     private float _scaryOffsetXLimit = 2.4f;
 
+    private float _requiredVelocity = 4.1f;
+    
     private bool _isShaking = false;
-    private float _shakeAmount = 0.2f;
+    private float _shakeAmount = 1f;
 
     private void Start()
     {
@@ -45,7 +47,7 @@ public class MainCameraController : MonoBehaviour
         // All the weird lerping stuff
 
         // Handle scary offset
-        if (Mathf.Abs(_player.GetVelocity().x) > 4.5f)
+        if (Mathf.Abs(_player.GetVelocity().x) > _requiredVelocity)
             _scaryOffset.x += _player.GetInputDirX() * 4f * Time.fixedDeltaTime;
 
         var newPos = transform.position;
@@ -55,7 +57,7 @@ public class MainCameraController : MonoBehaviour
         var insideSafeZone = relativePos.x > -_xLimit && relativePos.x < _xLimit;
 
 
-        if (!insideSafeZone || Mathf.Abs(_player.GetVelocity().x) > 4.5f)
+        if (!insideSafeZone || Mathf.Abs(_player.GetVelocity().x) > _requiredVelocity)
         {
             newPos.x = _player.transform.position.x - (Mathf.Sign(relativePos.x) * _xLimit);
 
@@ -68,7 +70,7 @@ public class MainCameraController : MonoBehaviour
 
     public void StartScreenShake(float amount, float duration = -1)
     {
-        _shakeAmount = amount;
+        _shakeAmount = amount * 0.2f;
         _isShaking = true;
 
         if (duration >= 0)
