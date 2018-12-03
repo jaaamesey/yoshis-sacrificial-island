@@ -25,7 +25,7 @@ public class TongueBall : MonoBehaviour
 
     private void Awake()
     {
-        
+        TongueToObjectDistanceJoint.connectedBody = null;
     }
     
     private void FixedUpdate()

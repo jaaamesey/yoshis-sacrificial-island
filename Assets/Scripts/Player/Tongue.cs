@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ public class Tongue : MonoBehaviour
 {
     public Vector3 TonguePlayerOffset = new Vector3(0.4f, 0.08f, 0f);
     public float TongueTime = 0.0f;
-    
+
     private PlayerController _player = null;
     private PlayerGraphicsController _playerGraphicsController = null;
     private LineRenderer _tongueLineRenderer = null;
@@ -32,7 +33,7 @@ public class Tongue : MonoBehaviour
             _tongueLineRenderer.gameObject.SetActive(false);
             _tongueBall.gameObject.SetActive(false);
             _tongueBehindSprite.gameObject.SetActive(false);
-            
+
             _tongueBall.TongueToObjectDistanceJoint.enabled = false;
             _tongueBall.TongueToObjectDistanceJoint.connectedBody = null;
             return;
@@ -45,7 +46,7 @@ public class Tongue : MonoBehaviour
         if (Input.GetButtonDown("Tongue"))
         {
             // Do initial tongue stuff
-            
+
             // Get offset
             var flip = 1;
             if (_playerGraphicsController.Sprite.flipX)
@@ -53,15 +54,20 @@ public class Tongue : MonoBehaviour
 
             var offset = new Vector3(flip * TonguePlayerOffset.x, TonguePlayerOffset.y, TonguePlayerOffset.z);
 
-            
+
             _tongueBall.transform.position = _player.transform.position + offset;
-            _tongueBall.Rb.velocity = (7f * flip * Vector2.right) + _player.GetVelocity();
+            _tongueBall.Rb.velocity = (7f * flip * Vector2.right);
+            if (Math.Abs(Mathf.Sign(_player.GetVelocity().x) - Mathf.Sign(flip)) < 0.01)
+            {
+                _tongueBall.Rb.velocity += new Vector2(_player.GetVelocity().x, _player.GetVelocity().y);
+            }
+
             _tongueBall.TongueToObjectDistanceJoint.enabled = false;
             _tongueBall.TongueToObjectDistanceJoint.connectedBody = null;
-            
+
             _player.PlaySound("yoshi_tongue");
         }
-        
+
         RenderTongue();
         TongueTime += Time.fixedDeltaTime;
     }

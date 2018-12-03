@@ -76,7 +76,7 @@ public class MainCameraController : MonoBehaviour
         if (!_isShaking && posDelta >= 0.17f)
         {
             transform.position = 0.5f * (transform.position + prevPos);
-            print("Camera jump fix");
+            //print("Camera jump fix");
         }
         
         UpdateUi();

@@ -1,11 +1,13 @@
 ﻿using System;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     // Public vars
     public float Health = 100f;
+    public bool IsDead = false;
 
     // Constants
     private const float SinglePixel = 3.125f / 32f;
@@ -22,6 +24,8 @@ public class PlayerController : MonoBehaviour
     [NotNull] private Rigidbody2D _rb;
 
     [NotNull] private MainCameraController _cameraController = null;
+
+    private SpriteRenderer _bigBlack = null;
 
     private float _movementSpd = 50.0f * SinglePixel;
     private float _accelSpd = 1.5f;
@@ -63,6 +67,7 @@ public class PlayerController : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         Debug.Assert(Camera.main != null, "Camera.main != null");
         _cameraController = Camera.main.GetComponent<MainCameraController>();
+        _bigBlack = GameObject.FindWithTag("BigBlack").GetComponent<SpriteRenderer>();
 
         // Special system stuff
         // Turn off interpolation if on WebGL
@@ -110,6 +115,27 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (IsDead)
+        {
+            var bigBlackColor = _bigBlack.color;
+            bigBlackColor.a += Time.fixedDeltaTime;
+            _bigBlack.color = bigBlackColor;
+            if (bigBlackColor.a >= 0.99f)
+                SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
+            return;
+        }
+            
+        
+        
+        // Check if should kill
+        if (Health <= 0 || transform.position.y < -30f)
+        {
+            IsDead = true;
+            return;
+        }
+            
+        
+        
         if (_hurtTimer > 0.01f)
         {
             _inputDirX = 0;
@@ -389,6 +415,11 @@ public class PlayerController : MonoBehaviour
         Health -= 10f;
 
         Invoke(nameof(SetNotInvincible), 0.45f);
+    }
+
+    public void Die()
+    {
+        
     }
 
     public void SetNotInvincible()
