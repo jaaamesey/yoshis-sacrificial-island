@@ -7,6 +7,7 @@ using UnityEngine;
 public class MainCameraController : MonoBehaviour
 {
     [NotNull] [SerializeField] private PlayerController _player = null;
+    [NotNull] [SerializeField] private Canvas _canvas = null;
 
     private float _xLimit = 0.6f;
 
@@ -66,8 +67,16 @@ public class MainCameraController : MonoBehaviour
         }
 
         transform.position += _finalOffset;
+
+        UpdateUi();
     }
 
+    public void UpdateUi()
+    {
+        var healthGreenRectTransform = _canvas.transform.Find("Health/Green").GetComponent<RectTransform>();
+        healthGreenRectTransform.sizeDelta = new Vector2(_player.Health, healthGreenRectTransform.sizeDelta.y);
+    }
+    
     public void StartScreenShake(float amount, float duration = -1)
     {
         _shakeAmount = amount * 0.2f;

@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     // Public vars
-    public int Health = 6;
+    public float Health = 100f;
     
     // Constants
     private const float SinglePixel = 3.125f / 32f;
@@ -15,8 +15,10 @@ public class PlayerController : MonoBehaviour
     private const float JumpButtonLeewayTimerTime = 0.15f;
     private const float FlutterJumpTimerTime = 1.0f;
     private const float FlutterJumpCooldownTimerTime = 0.191f;
+    private const float HurtTimerTime = 0.2f;
 
     [NotNull] [SerializeField] private GroundCheck _groundCheck = null;
+    [NotNull] [SerializeField] private PlayerGraphicsController _graphicsController = null;
     [NotNull] private Rigidbody2D _rb;
 
     [NotNull] private MainCameraController _cameraController = null;
@@ -31,6 +33,8 @@ public class PlayerController : MonoBehaviour
     private int _inputDirX = 0;
     private float _xSpd = 0.0f;
 
+    private Vector2 _knockbackVector = Vector2.zero;
+
     private Vector2 _relativeVelocity = new Vector2();
 
     private int _flutterJumpsBeforeLandingCount = 0;
@@ -40,11 +44,14 @@ public class PlayerController : MonoBehaviour
     private bool _isJumpJustPressed = false;
     private bool _isJumpJustReleased = false;
 
+    private bool _invincible = false;
+
     // Timers
     private float _jumpSafetyTimer = 0.0f;
     private float _jumpButtonLeewayTimer = 0.0f;
     private float _flutterJumpTimer = 0.0f;
     private float _flutterJumpCooldownTimer = 0.0f;
+    private float _hurtTimer = 0.0f;
 
     // Stopwatches
     private float _jumpHoldTime = -1.0f;
@@ -91,6 +98,10 @@ public class PlayerController : MonoBehaviour
 
         _flutterJumpCooldownTimer -= Time.fixedDeltaTime;
         _flutterJumpCooldownTimer = Mathf.Clamp(_flutterJumpCooldownTimer, 0.0f, FlutterJumpCooldownTimerTime);
+        
+        _hurtTimer -= Time.fixedDeltaTime;
+        _hurtTimer = Mathf.Clamp(_hurtTimer, 0.0f, HurtTimerTime);
+        
     }
 
     // Update is called once per frame
@@ -101,6 +112,12 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (_hurtTimer > 0.01f)
+        {
+            _inputDirX = 0;
+        }
+            
+        
         // Store relative velocity of whatever is being stood on
         _relativeVelocity = new Vector2();
         Rigidbody2D objectBeingStoodOn = null;
@@ -124,7 +141,7 @@ public class PlayerController : MonoBehaviour
             if (shyGuy != null)
             {
                 // Kill ShyGuy
-                if (!shyGuy.IsDead)
+                if (!shyGuy.IsDead && _hurtTimer < 0.1f)
                 {
                     // Force jump (lil' trick)
 
@@ -271,7 +288,9 @@ public class PlayerController : MonoBehaviour
         if (_rb.velocity.y < -10f)
             _rb.velocity = new Vector2(_rb.velocity.x, -10f);
 
-
+        _rb.velocity += _knockbackVector;
+        _knockbackVector *= 0.9f;
+        
         // Clamp rotation
         _rb.angularVelocity = Mathf.Clamp(_rb.angularVelocity, -100f, 100f);
         _rb.rotation = Mathf.Clamp(_rb.rotation, -20f, 20f);
@@ -304,6 +323,12 @@ public class PlayerController : MonoBehaviour
     public Vector2 GetRelativeVelocity()
     {
         return _relativeVelocity;
+    }
+    
+        
+    public float GetHurtTimer()
+    {
+        return _hurtTimer;
     }
 
     public float GetFlutterJumpTime()
@@ -345,5 +370,32 @@ public class PlayerController : MonoBehaviour
     public void ResetTimeScale()
     {
         Time.timeScale = 1.0f;
+    }
+
+    public void Hurt(Vector2 knockbackDir = default(Vector2))
+    {
+        if (_invincible)
+            return;
+        
+        _graphicsController.GetComponent<SpriteRenderer>().color = Color.red;
+        PlaySound("yoshi_hurt");
+        _invincible = true;
+        _hurtTimer = HurtTimerTime;
+
+
+        knockbackDir.y = 0f;
+        
+        _knockbackVector = new Vector2();
+        _knockbackVector += 3f * knockbackDir;
+
+        Health -= 10f;
+        
+        Invoke(nameof(SetNotInvincible), 0.45f);
+    }
+
+    public void SetNotInvincible()
+    {
+        _invincible = false;
+        _hurtTimer = 0.0f;
     }
 }
