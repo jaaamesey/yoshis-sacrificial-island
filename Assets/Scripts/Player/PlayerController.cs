@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     // Public vars
     public float Health = 100f;
+    public float HealthDecrementAmount = 0f;
     public bool IsDead = false;
 
     // Constants
@@ -128,7 +129,7 @@ public class PlayerController : MonoBehaviour
         
         
         // Check if should kill
-        if (Health <= 0 || transform.position.y < -30f)
+        if (Health <= 0 || transform.position.y < -9f || Input.GetButtonDown("Restart"))
         {
             IsDead = true;
             return;
@@ -141,6 +142,7 @@ public class PlayerController : MonoBehaviour
             _inputDirX = 0;
         }
 
+        Health -= HealthDecrementAmount * Time.fixedDeltaTime;
 
         // Store relative velocity of whatever is being stood on
         _relativeVelocity = new Vector2();

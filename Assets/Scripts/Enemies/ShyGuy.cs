@@ -34,6 +34,7 @@ public class ShyGuy : MonoBehaviour
         if (IsTongued || IsDead)
         {
             _rb.mass = 2.0f * DragWeightMod;
+            _rb.gravityScale = 1.0f;
             if (!IsDead)
                 return;
         }
@@ -63,7 +64,7 @@ public class ShyGuy : MonoBehaviour
 
     private Vector2 CosineVelocity()
     {
-        return new Vector2(_moveSpd * Mathf.Cos(_curveSpd * Time.realtimeSinceStartup), _rb.velocity.y - _gravitySpd);
+        return new Vector2(_moveSpd * Mathf.Cos(_curveSpd * Time.realtimeSinceStartup), _rb.velocity.y - (_gravitySpd * _rb.gravityScale));
     }
 
     private void OnBecameVisible()

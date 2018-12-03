@@ -29,7 +29,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8427238042959929331}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.27, y: 0.117, z: 0.15770341}
+  m_LocalPosition: {x: 1.27, y: 0.117, z: 0}
   m_LocalScale: {x: 3.125, y: 3.125, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -164,5 +164,5 @@ MonoBehaviour:
   IsDead: 0
   IsTongued: 0
   DragWeightMod: 2
-  _moveSpd: 1.2
+  _moveSpd: 1.8
   _curveSpd: 2
