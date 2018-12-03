@@ -8,6 +8,7 @@ public class ShyGuy : MonoBehaviour
 {
     public bool IsDead;
     public bool IsTongued;
+    public float DragWeightMod = 1.0f;
 
     private Rigidbody2D _rb;
     private Animator _animator;
@@ -32,7 +33,7 @@ public class ShyGuy : MonoBehaviour
     {
         if (IsTongued || IsDead)
         {
-            _rb.mass = 1.0f;
+            _rb.mass = 2.0f * DragWeightMod;
             if (!IsDead)
                 return;
         }

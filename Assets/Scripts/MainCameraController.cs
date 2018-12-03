@@ -32,6 +32,8 @@ public class MainCameraController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        var prevPos = transform.position;
+        
         transform.position -= _finalOffset;
         _finalOffset = new Vector3();
         // Handle screen shake
@@ -68,6 +70,15 @@ public class MainCameraController : MonoBehaviour
 
         transform.position += _finalOffset;
 
+        var posDelta = Mathf.Abs((transform.position - prevPos).magnitude) ;
+
+        // Apply smoothing
+        if (!_isShaking && posDelta >= 0.17f)
+        {
+            transform.position = 0.5f * (transform.position + prevPos);
+            print("Camera jump fix");
+        }
+        
         UpdateUi();
     }
 
