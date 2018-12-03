@@ -30,9 +30,9 @@ public class ShyGuy : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (IsTongued)
+        if (IsTongued || IsDead)
         {
-            _rb.mass = 0.5f;
+            _rb.mass = 1.0f;
             if (!IsDead)
                 return;
         }

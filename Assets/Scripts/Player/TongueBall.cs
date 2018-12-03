@@ -22,15 +22,33 @@ public class TongueBall : MonoBehaviour
         _player = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
         Rb = GetComponent<Rigidbody2D>();
     }
-    
+
+    private void Awake()
+    {
+        
+    }
     
     private void FixedUpdate()
     {
-        print(_overlappingColliders);
-        /*foreach (var other in _overlappingColliders)
+        if (TongueToObjectDistanceJoint.connectedBody != null)
+            return;
+        
+        foreach (var other in _overlappingColliders)
         {
-            
-        }*/
+            if (other.GetComponent<PlayerController>() != null)
+                continue;
+
+            var rb = other.gameObject.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                TongueToObjectDistanceJoint.connectedBody = rb;
+                TongueToObjectDistanceJoint.enabled = true;
+
+                var shyGuy = rb.GetComponent<ShyGuy>();
+                if (shyGuy != null)
+                    shyGuy.IsTongued = true;
+            }
+        }
         
     }
 

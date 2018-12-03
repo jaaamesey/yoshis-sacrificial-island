@@ -5,7 +5,8 @@ using UnityEngine;
 public class Tongue : MonoBehaviour
 {
     public Vector3 TonguePlayerOffset = new Vector3(0.4f, 0.08f, 0f);
-
+    public float TongueTime = 0.0f;
+    
     private PlayerController _player = null;
     private PlayerGraphicsController _playerGraphicsController = null;
     private LineRenderer _tongueLineRenderer = null;
@@ -27,6 +28,7 @@ public class Tongue : MonoBehaviour
     {
         if (!Input.GetButton("Tongue"))
         {
+            TongueTime = 0;
             _tongueLineRenderer.gameObject.SetActive(false);
             _tongueBall.gameObject.SetActive(false);
             _tongueBehindSprite.gameObject.SetActive(false);
@@ -53,15 +55,15 @@ public class Tongue : MonoBehaviour
 
             
             _tongueBall.transform.position = _player.transform.position + offset;
-            _tongueBall.Rb.velocity = 7f * flip * Vector2.right;
+            _tongueBall.Rb.velocity = (7f * flip * Vector2.right) + _player.GetVelocity();
             _tongueBall.TongueToObjectDistanceJoint.enabled = false;
             _tongueBall.TongueToObjectDistanceJoint.connectedBody = null;
             
             _player.PlaySound("yoshi_tongue");
         }
-
+        
         RenderTongue();
-        //print(_tongueBall.GetComponent<CircleCollider2D>().GetContacts());
+        TongueTime += Time.fixedDeltaTime;
     }
 
     private void RenderTongue()

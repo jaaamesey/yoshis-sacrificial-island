@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     // Public vars
     public float Health = 100f;
-    
+
     // Constants
     private const float SinglePixel = 3.125f / 32f;
 
@@ -68,7 +68,6 @@ public class PlayerController : MonoBehaviour
         // Turn off interpolation if on WebGL
         if (Application.platform == RuntimePlatform.WebGLPlayer)
             _rb.interpolation = RigidbodyInterpolation2D.None;
-        
     }
 
     private void ProcessInput()
@@ -98,10 +97,9 @@ public class PlayerController : MonoBehaviour
 
         _flutterJumpCooldownTimer -= Time.fixedDeltaTime;
         _flutterJumpCooldownTimer = Mathf.Clamp(_flutterJumpCooldownTimer, 0.0f, FlutterJumpCooldownTimerTime);
-        
+
         _hurtTimer -= Time.fixedDeltaTime;
         _hurtTimer = Mathf.Clamp(_hurtTimer, 0.0f, HurtTimerTime);
-        
     }
 
     // Update is called once per frame
@@ -116,15 +114,15 @@ public class PlayerController : MonoBehaviour
         {
             _inputDirX = 0;
         }
-            
-        
+
+
         // Store relative velocity of whatever is being stood on
         _relativeVelocity = new Vector2();
         Rigidbody2D objectBeingStoodOn = null;
-        
+
         // Store force vector that can be used later
         var pendingForceVector = new Vector2();
-        
+
         // Handle stomping on things
         foreach (var col in _groundCheck.GetOverlappingColliders())
         {
@@ -135,7 +133,7 @@ public class PlayerController : MonoBehaviour
                 objectBeingStoodOn = otherRb;
                 _relativeVelocity = otherRb.velocity;
             }
-                
+
             // Shy guy check
             var shyGuy = col.gameObject.GetComponent<ShyGuy>();
             if (shyGuy != null)
@@ -156,14 +154,10 @@ public class PlayerController : MonoBehaviour
                     _cameraController.StartScreenShake(0.8f, 0.4f);
                     shyGuy.Kill();
                 }
-                    
             }
         }
-        
-        
-        
-        
-        
+
+
         var is_braking = false;
 
         // Determine if braking
@@ -195,7 +189,7 @@ public class PlayerController : MonoBehaviour
             _jumpSafetyTimer = JumpSafetyTimerTime;
             // Reset flutter jump count
             _flutterJumpsBeforeLandingCount = 0;
-            
+
             // Also play jump sound
             PlaySound("yoshi_jump");
         }
@@ -258,6 +252,9 @@ public class PlayerController : MonoBehaviour
             movementSpdModifier *= 0.55f;
         }
 
+        if (Input.GetButton("Tongue") && GetComponentInChildren<Tongue>().TongueTime <= 0.25f && !CanJump())
+            movementSpdModifier *= 0.5f;
+
         // Handle movement 
         var newVelocity = _rb.velocity;
 
@@ -291,7 +288,7 @@ public class PlayerController : MonoBehaviour
 
         _rb.velocity += _knockbackVector;
         _knockbackVector *= 0.9f;
-        
+
         // Clamp rotation
         _rb.angularVelocity = Mathf.Clamp(_rb.angularVelocity, -100f, 100f);
         _rb.rotation = Mathf.Clamp(_rb.rotation, -20f, 20f);
@@ -320,13 +317,13 @@ public class PlayerController : MonoBehaviour
     {
         return _rb.velocity;
     }
-    
+
     public Vector2 GetRelativeVelocity()
     {
         return _relativeVelocity;
     }
-    
-        
+
+
     public float GetHurtTimer()
     {
         return _hurtTimer;
@@ -336,7 +333,7 @@ public class PlayerController : MonoBehaviour
     {
         return _flutterJumpTimer;
     }
-    
+
     public bool IsGrounded()
     {
         return _groundCheck.IsColliding();
@@ -349,14 +346,14 @@ public class PlayerController : MonoBehaviour
         sound.GetComponent<AudioSource>().enabled = true;
         sound.GetComponent<AudioSource>().Play();
     }
-    
+
     public void PlayParticleEffect(string effectName, Vector2 pos)
     {
         var effects = transform.Find("Effects");
         var effect = effects.transform.Find(effectName);
-        
+
         effect.transform.position = pos;
-        
+
         effect.gameObject.SetActive(true);
         effect.GetComponent<ParticleSystem>().Play();
     }
@@ -377,7 +374,7 @@ public class PlayerController : MonoBehaviour
     {
         if (_invincible)
             return;
-        
+
         _graphicsController.GetComponent<SpriteRenderer>().color = Color.red;
         PlaySound("yoshi_hurt");
         _invincible = true;
@@ -385,12 +382,12 @@ public class PlayerController : MonoBehaviour
 
 
         knockbackDir.y = 0f;
-        
+
         _knockbackVector = new Vector2();
         _knockbackVector += 3f * knockbackDir;
 
         Health -= 10f;
-        
+
         Invoke(nameof(SetNotInvincible), 0.45f);
     }
 
