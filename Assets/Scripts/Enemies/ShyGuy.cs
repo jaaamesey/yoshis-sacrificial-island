@@ -7,18 +7,19 @@ using Random = System.Random;
 public class ShyGuy : MonoBehaviour
 {
     public bool IsDead;
+    public bool IsTongued;
 
     private Rigidbody2D _rb;
     private Animator _animator;
     private SpriteRenderer _sprite;
-    
+
     private float _gravitySpd = 1.0f;
 
     [SerializeField] private float _moveSpd = 1.2f;
     [SerializeField] private float _curveSpd = 2.0f;
-    
+
     private Vector2 _prevVelocity = Vector2.zero;
-    
+
     // Start is called before the first frame update
     private void Start()
     {
@@ -29,35 +30,46 @@ public class ShyGuy : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (IsTongued)
+        {
+            _rb.mass = 0.5f;
+            if (!IsDead)
+                return;
+        }
+        else
+        {
+            _rb.mass = 15f;
+        }
+
+
         if (IsDead)
         {
             _rb.constraints = RigidbodyConstraints2D.None;
             _sprite.color = Color.Lerp(_sprite.color, Color.gray, 0.1f);
             return;
         }
-        
+
         _rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
         var newVelocity = CosineVelocity();
         _rb.velocity = newVelocity; //- _prevVelocity;
-        
-        _animator.speed = Mathf.Abs(1f * _rb.velocity.x);
-        
-        if (Mathf.Abs(_rb.velocity.x) >= 0.3f )
-            _sprite.flipX = newVelocity.x < 0;
 
+        _animator.speed = Mathf.Abs(1f * _rb.velocity.x);
+
+        if (Mathf.Abs(_rb.velocity.x) >= 0.3f)
+            _sprite.flipX = newVelocity.x < 0;
     }
 
     private Vector2 CosineVelocity()
     {
-        return new Vector2(_moveSpd * Mathf.Cos(_curveSpd * Time.realtimeSinceStartup), _rb.velocity.y -_gravitySpd);
+        return new Vector2(_moveSpd * Mathf.Cos(_curveSpd * Time.realtimeSinceStartup), _rb.velocity.y - _gravitySpd);
     }
 
     private void OnBecameVisible()
     {
         enabled = true;
     }
-    
+
     private void OnBecameInvisible()
     {
         enabled = false;

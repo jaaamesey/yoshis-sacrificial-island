@@ -152,6 +152,7 @@ public class PlayerController : MonoBehaviour
                     PlaySound("punch");
                     PlaySound("hit");
                     PlayParticleEffect("white_hit", shyGuy.transform.position);
+                    PlayParticleEffect("red_hit", shyGuy.transform.position);
                     _cameraController.StartScreenShake(0.8f, 0.4f);
                     shyGuy.Kill();
                 }

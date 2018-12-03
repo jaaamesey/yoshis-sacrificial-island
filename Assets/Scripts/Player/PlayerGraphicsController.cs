@@ -6,13 +6,13 @@ using UnityEngine;
 public class PlayerGraphicsController : MonoBehaviour
 {
     [NotNull] private PlayerController _playerController = null;
-    private SpriteRenderer _sprite = null;
+    public SpriteRenderer Sprite = null;
     private Animator _animator = null;
 
     // Start is called before the first frame update
     private void Start()
     {
-        _sprite = GetComponent<SpriteRenderer>();
+        Sprite = GetComponent<SpriteRenderer>();
         _animator = GetComponent<Animator>();
         _playerController = GetComponentInParent<PlayerController>();
     }
@@ -21,13 +21,13 @@ public class PlayerGraphicsController : MonoBehaviour
     {
         // Lerp back colour 
         if (_playerController.GetHurtTimer() <= 0.01f)
-            _sprite.color = Color.Lerp(_sprite.color, Color.white, 0.1f);
+            Sprite.color = Color.Lerp(Sprite.color, Color.white, 0.1f);
 
         // Change direction sprite is facing
         if (_playerController.GetInputDirX() > 0)
-            _sprite.flipX = false;
+            Sprite.flipX = false;
         else if (_playerController.GetInputDirX() < 0)
-            _sprite.flipX = true;
+            Sprite.flipX = true;
 
         var xSpeed = Mathf.Abs(_playerController.GetVelocity().x) -
                      Mathf.Abs(_playerController.GetRelativeVelocity().x);
